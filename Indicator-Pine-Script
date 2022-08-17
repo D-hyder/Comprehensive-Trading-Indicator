@@ -1,0 +1,50 @@
+// My Comprehensive Trading Indicator Package using Pine Script
+//@version=5
+
+indicator(title="My Comprehensive Trading Indicator", shorttitle="DHyder Indicator", overlay=true)
+
+//Variable assignments for Range and Relative High Volume
+wickRange = high - low
+avgVol = ta.sma(volume[1], 12)
+isHighRVolBuy = volume[1] > avgVol * 1.1
+isHighRVolSell = volume[1] > avgVol * 1.0 
+
+//Utilizing If statements to calculate Hammer and HangingMan Candles
+isBWick = (close[1] > open[1]) ? (open[1] - low[1]) / wickRange[1] > .3 and (high[1] - close[1]) / wickRange[1] < .3 : (close[1] - low[1]) / wickRange[1] > .32 and (high[1] - open[1]) / wickRange[1] < .5
+isSWick = (close[1] > open[1]) ? (open[1] - low[1]) / wickRange[1] < .42 and (high[1] - close[1]) / wickRange > .29 : (close[1] - low[1]) / wickRange[1] < .4 and (high[1] - open[1]) / wickRange[1] > .3
+hammer = isBWick and low[1] == ta.lowest(low[1], 5) and high > high[1]
+hangingMan = isSWick and high[1] == ta.highest(high[1], 5) and low < low[1]
+
+//Plotting buy and short signals varying by color based off Hammer and HangingMan candle indications and Relative Volume
+plotshape(hammer, title='LONG SIGNAL', style=shape.arrowup, location=location.belowbar, color=(isHighRVolBuy) ? color.new(color.green, 10) : color.new(color.blue, 10), size=size.small)
+plotshape(hangingMan, title='SHORT SIGNAL', style=shape.arrowdown, location=location.abovebar, color=(isHighRVolSell) ? color.new(color.red, 10) : color.new(color.blue, 10), size=size.small)
+
+//Assignments for inside bar and outside bar single candles plus combinations between all candle indicators
+inBar = low > low[1] and high < high[1]
+inBarLong = low[1] > low[2] and high[1] < high[2] and high > high[1]
+inBarShort = low[1] > low[2] and high[1] < high[2] and low < low[1]
+outBar = low < low[1] and high > high[1]
+holyGrail = low[1] < low[2] and high[1] > high[2] and low > low[1] and high < high[1]
+doubleIn = low[1] > low[2] and high[1] < high[2] and low > low[1] and high < high[1]
+doubleOut = low[1] < low[2] and high[1] > high[2] and low < low[1] and high > high[1]
+nirvana = low[2] < low[1] and high[2] > high[1] and low[1] > low and high[1] < high
+genesis =  hammer and outBar
+apocalypse = hangingMan and outBar
+
+//Background color highlights for single and double candle combination of indicators
+barcolor (inBar ? color.new(color.yellow,25) : na, title = "Inside Bar")
+barcolor (outBar == 1 ? color.new(color.white, 25) : na, title = "Outside Bar")
+bgcolor (holyGrail == 1 ? color.new(color.yellow, 90) : na, offset = -1, title = "Holy Grail - Out Bar")
+bgcolor (holyGrail == 1 ? color.new(color.yellow, 90) : na, title = "Holy Grail - In Bar")
+bgcolor (doubleIn == 1 ? color.new(color.white, 95) : na, offset = -1, title = "Double Inside - Bar One")
+bgcolor (doubleIn == 1 ? color.new(color.white, 95) : na, title = "Double Inside - Bar Two")
+bgcolor (doubleOut == 1 ? color.new(color.orange, 95) : na, offset = -1, title = "Double Outside - Bar One")
+bgcolor (doubleOut == 1 ? color.new(color.orange, 95) : na, title = "Double Outside - Bar Two")
+bgcolor (nirvana == 1 ? color.new(color.blue, 95) : na, offset = -1, title = "Nirvana - Bar One")
+bgcolor (nirvana == 1 ? color.new(color.blue, 95) : na, title = "Nirvana - Bar Two")
+bgcolor (genesis == 1 ? color.new(color.lime, 95) : na, title = "Genesis")
+bgcolor (apocalypse == 1 ? color.new(color.maroon, 95) : na, title = "Apocalypse")
+
+//Plotting buy and short signals varying by color based off Inside Bar candle indications and Relative Volume
+plotshape(inBarLong, title='Inside Bar Long', style=shape.arrowup, location=location.belowbar, color=(isHighRVolBuy) ? color.new(color.lime, 25) : color.new(color.yellow, 25), size=size.small)
+plotshape(inBarShort, title='Inside Bar Short', style=shape.arrowdown, location=location.abovebar, color=(isHighRVolSell) ? color.new(color.maroon, 25) : color.new(color.yellow, 25), size=size.small)
